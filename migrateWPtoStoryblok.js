@@ -8,7 +8,7 @@ const wp2storyblok = new Wp2Storyblok('https://voicenationstaging.info/wp-json',
     {
       name: 'posts', // Post type name in WP
       new_content_type: 'article', // Content Type name in Storyblok
-      folder: 'blog', // Destination folder name in Storyblok
+      folder: 'import', // Destination folder name in Storyblok
       schema_mapping: {
         // Mapping of WP fields to Storyblok fields
         // WPfield: Storyblokfield
