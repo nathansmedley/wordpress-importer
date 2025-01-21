@@ -8,33 +8,21 @@ const wp2storyblok = new Wp2Storyblok('https://voicenationstaging.info/wp-json',
     {
       name: 'posts', // Post type name in WP
       new_content_type: 'article', // Content Type name in Storyblok
-      folder: 'import', // Destination folder name in Storyblok
+      folder: 'resources/import', // Destination folder name in Storyblok
       schema_mapping: {
         // Mapping of WP fields to Storyblok fields
         // WPfield: Storyblokfield
         "slug": "full_slug",
-        "title.rendered": "story.name",
         "title.rendered": "content.title",
-        "_links.wp:featuredmedia.0": "content.image",
-        "date": "created_at",
-        "date": "published_at",
-        "date": "updated_at",
+        '_links.wp:featuredmedia.0': 'content.image',
+        "content.rendered": "content.content",
 
-        "content": {
-          "field": "content.content",
-          "component": "rich-text",
-          "component_field": "content"
-        },
+        //Date & Time
+        "date": "content.publish_date",
 
         //SEO data
-        "_links.wp:featuredmedia.0": "story.content.SEO.og_image",
-        "_links.wp:featuredmedia.0": "story.content.SEO.twitter_image",
-        "yoast_head_json.title": "story.content.SEO.title",
-        "yoast_head_json.title": "story.content.SEO.og_title",
-        "yoast_head_json.title": "story.content.SEO.twitter_title",
-        "yoast_head_json.description": "story.story.content.SEO.description",
-        "yoast_head_json.description": "story.content.SEO.og_description",
-        "yoast_head_json.description": "story.content.SEO.twitter_description",
+        "yoast_head_json.title": "content.meta_title",
+        "yoast_head_json.desc": "content.meta_desc",
       }
     },
   ]
