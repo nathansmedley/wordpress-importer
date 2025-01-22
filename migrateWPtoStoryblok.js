@@ -18,7 +18,7 @@ const wp2storyblok = new Wp2Storyblok('https://voicenationstaging.info/wp-json',
         "content.rendered": "content.content",
 
         //Date & Time
-        "date": "content.publish_date",
+        "date": "first_published_at",
 
         //SEO data
         "yoast_head_json.title": "content.meta_title",
