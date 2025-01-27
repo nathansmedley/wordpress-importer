@@ -11,10 +11,10 @@ export default class Wp {
    * Import taxonomies
    */
   async importTaxonomies(taxonomies) {
-    if(!taxonomies) return
+    if (!taxonomies) return
     for (let i = 0; i < taxonomies.length; i++) {
       const taxonomy = taxonomies[i]
-      if(!this.content_types[taxonomy.name]) {
+      if (!this.content_types[taxonomy.name]) {
         await this.getPosts(taxonomy.name)
       }
     }
@@ -34,7 +34,7 @@ export default class Wp {
         let query_endpoint = this.endpoint
         query_endpoint += '/wp/v2/'
         query_endpoint += content_name
-        query_endpoint +=  this.endpoint.includes('?') ? '&' : '?'
+        query_endpoint += this.endpoint.includes('?') ? '&' : '?'
         query_endpoint += `per_page=50&page=${page_i}`
 
         const req = await axios.get(query_endpoint)
@@ -65,11 +65,11 @@ export default class Wp {
       try {
         const link = await axios.get(field_value.href)
         return link.data?.source_url
-      } catch(err) {
+      } catch (err) {
         console.log(`Error while trying to fetch ${field_value.href}`);
         return null;
       }
-    } else if(field === 'blocks') {
+    } else if (field === 'blocks') {
       return field_value
     }
     return field_value
@@ -83,10 +83,10 @@ export default class Wp {
    * @returns {Object|String|Array|Number} The filtered value
    */
   filterTaxonomyValue(taxonomies, field_value, source) {
-    if(taxonomies) {
+    if (taxonomies) {
       const field_taxonomy = taxonomies.find(t => t.field === source)
-      if(field_taxonomy) {
-        if(Array.isArray(field_value)) {
+      if (field_taxonomy) {
+        if (Array.isArray(field_value)) {
           field_value = field_value.map(val => this.content_types[field_taxonomy.name].find(t => t.id == val)?.slug)
         } else {
           field_value = this.content_types[field_taxonomy.name].find(t => t.id == field_value)?.slug || field_value

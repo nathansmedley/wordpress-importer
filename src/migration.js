@@ -63,75 +63,56 @@ export default class Wp2Storyblok {
    * Prepare stories for moving them to Storyblok
    */
   async prepareStories() {
-    const sb_links = await this.storyblok.getLinks();
+    const sb_links = await this.storyblok.getLinks()
     for (let i = 0; i < this.settings.content_types.length; i++) {
-      const content_type = this.settings.content_types[i];
-
-      await this.wp.importTaxonomies(content_type.taxonomies);
-      await this.wp.getPosts(content_type.name);
-
-      // Process only the first post
-      const firstPost = this.wp.content_types[content_type.name][0];
-      if (!firstPost) continue;
-
-      const wp_entry = firstPost;
-
-      if (content_type.folder) {
-        const entry_url = new URL(wp_entry.link);
-        wp_entry.link = wp_entry.link.replace(
-          entry_url.origin,
-          `${entry_url.origin}/${content_type.folder.replace(/^\//, '').replace(/\/$/, '')}`
-        );
-      }
-
-      const entry_url = new URL(wp_entry.link);
-      const component_name = content_type.new_content_type || content_type.name;
-      let sb_entry = {
-        name: await this.wp.getFieldValue(wp_entry, 'title'),
-        slug: wp_entry.slug,
-        content: {},
-        _wp_link: entry_url.pathname,
-        _wp_folder: wp_entry.link.includes('?')
-          ? entry_url.pathname
-          : `${entry_url.pathname.split('/').slice(0, -2).join('/')}/`,
-      };
-
-      if (sb_links.stories.find((l) => compareSlugs(l.slug, sb_entry._wp_link))) {
-        continue;
-      }
-
-      const data_from_wp = await this.populateFields(
-        wp_entry,
-        component_name,
-        content_type.schema_mapping,
-        content_type.taxonomies
-      );
-      sb_entry = { ...sb_entry, ...data_from_wp };
-      sb_entry.content.component = component_name;
-
-      this.stories_to_migrate.push(sb_entry);
-
-      try {
-        if (
-          !this.folders_to_migrate.find((f) => f.path === sb_entry['_wp_folder']) &&
-          !sb_links.folders.find((f) => compareSlugs(f.slug, sb_entry['_wp_folder']))
-        ) {
-          const folder_slug = sb_entry['_wp_folder'].split('/')[sb_entry['_wp_folder'].split('/').length - 2];
-          this.folders_to_migrate.push({
-            path: sb_entry['_wp_folder'],
-            name: folder_slug.replace(/-_/g, ' '),
-            slug: folder_slug,
-          });
+      const content_type = this.settings.content_types[i]
+      // Import taxonomies for the current content type
+      await this.wp.importTaxonomies(content_type.taxonomies)
+      // Get all the posts for the content type
+      await this.wp.getPosts(content_type.name)
+      // Loop through the posts and get the content from WP in the right format
+      // for your Storyblok project
+      for (let j = 0; j < this.wp.content_types[content_type.name].length; j++) {
+        // Get the data from WP
+        const wp_entry = this.wp.content_types[content_type.name][j]
+        // If a folder is set as destination of the stories, update the link property from WP to have
+        // the new folder in it
+        if (content_type.folder) {
+          const entry_url = new URL(wp_entry.link)
+          wp_entry.link = wp_entry.link.replace(entry_url.origin, `${entry_url.origin}/${content_type.folder.replace(/^\//, '').replace(/\/$/, '')}`)
         }
-      } catch (err) {
-        console.log(`Invalid URL for entry ${sb_entry.name}`);
+        // Basic data object for Storyblok
+        // Temporary properties for managing folders of imported content
+        const entry_url = new URL(wp_entry.link)
+        const component_name = content_type.new_content_type || content_type.name
+        let sb_entry = {
+          name: this.wp.getFieldValue(wp_entry, 'title'),
+          slug: wp_entry.slug,
+          content: {},
+          _wp_link: entry_url.pathname,
+          _wp_folder: wp_entry.link.includes('?') ? entry_url.pathname : `${entry_url.pathname.split('/').slice(0, -2).join('/')}/`
+        }
+        if (sb_links.stories.find(l => compareSlugs(l.slug, sb_entry._wp_link))) {
+          continue
+        }
+        // Get the fields from WP in the right format for Storyblok
+        const data_from_wp = await this.populateFields(wp_entry, component_name, content_type.schema_mapping, content_type.taxonomies)
+        sb_entry = { ...sb_entry, ...data_from_wp }
+        sb_entry.content.component = component_name
+        // Queue the story for migration
+        this.stories_to_migrate.push(sb_entry)
+        try {
+          // If the folder of the current file is not yet in the list of the ones to migrate, it gets added
+          if (!this.folders_to_migrate.find(f => f.path === sb_entry['_wp_folder']) && !sb_links.folders.find(f => compareSlugs(f.slug, sb_entry['_wp_folder']))) {
+            const folder_slug = sb_entry['_wp_folder'].split('/')[sb_entry['_wp_folder'].split('/').length - 2]
+            this.folders_to_migrate.push({ path: sb_entry['_wp_folder'], name: folder_slug.replace(/-_/g, ' '), slug: folder_slug })
+          }
+        } catch (err) {
+          console.log(`Invalid URL for entry ${sb_entry.name}`)
+        }
       }
-
-      // Stop after processing the first post
-      break;
     }
   }
-
 
   /**
    * Import all the assets to Storyblok

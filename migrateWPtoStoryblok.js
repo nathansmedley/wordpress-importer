@@ -12,7 +12,8 @@ const wp2storyblok = new Wp2Storyblok('https://voicenationstaging.info/wp-json',
       schema_mapping: {
         // Mapping of WP fields to Storyblok fields
         // WPfield: Storyblokfield
-        "slug": "full_slug",
+        "slug": "slug",
+        "title": 'name',
         "title.rendered": "content.title",
         '_links.wp:featuredmedia.0': 'content.image',
         "content.rendered": "content.content",
@@ -22,7 +23,7 @@ const wp2storyblok = new Wp2Storyblok('https://voicenationstaging.info/wp-json',
 
         //SEO data
         "yoast_head_json.title": "content.meta_title",
-        "yoast_head_json.desc": "content.meta_desc",
+        "yoast_head_json.description": "content.meta_desc",
       }
     },
   ]
